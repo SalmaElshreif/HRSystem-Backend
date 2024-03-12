@@ -263,7 +263,7 @@ namespace GraduationProject.Controllers
                     id = employee.Id,
                     empName = employee.Name,
                     NetSalary = employee.salary.NetSalary,
-                    deptName = employee.dept.Name,
+                    deptName = employee?.dept?.Name,
                     attendanceDays = attendances?.Count() ?? 0,
                     absenceDays = absenceDayss,
                     exrtaHours = extraHours,
@@ -431,7 +431,7 @@ namespace GraduationProject.Controllers
                     id = employee.Id,
                     empName = employee.Name,
                     NetSalary = employee.salary.NetSalary,
-                    deptName = employee.dept.Name,
+                    deptName = employee?.dept?.Name,
                     attendanceDays = attendances?.Count() ?? 0,
                     absenceDays = absenceDayss,
                     exrtaHours = extraHours,
@@ -522,7 +522,7 @@ namespace GraduationProject.Controllers
                 .OrderBy(a => a.Attendence)
                 .ToList();
 
-            var attendanceDetails = new List<AttendanceResponse>();
+            var attendanceDetails = new List<EmployeeAttendenceDTO>();
 
             foreach (var attendance in attendances)
             {
@@ -536,11 +536,11 @@ namespace GraduationProject.Controllers
                 var extraHours = timeDifferenceInHours > originalTimeDifferenceInHours ? timeDifferenceInHours - originalTimeDifferenceInHours : 0;
                 var earlyDepartureHours = originalTimeDifferenceInHours > timeDifferenceInHours ? originalTimeDifferenceInHours - timeDifferenceInHours : 0;
 
-                var attendanceDetail = new AttendanceResponse
+                var attendanceDetail = new EmployeeAttendenceDTO
                 {
                     id = attendance.Id,
                     name = employee.Name,
-                    department = employee.dept.Name,
+                    department = employee?.dept?.Name,
                     attend = attendance.Attendence.ToString("HH:mm"), // Format as "HH:mm" for time-only string
                     leave = attendance.Departure.ToString("HH:mm"),
                     date = attendance.Attendence.Date.ToString("yyyy-MM-dd"), // Format as "yyyy-MM-dd" for date-only string

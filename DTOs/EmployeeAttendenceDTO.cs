@@ -1,6 +1,6 @@
 ﻿namespace GraduationProject.DTOs
 {
-    public class AttendanceResponse
+    public class EmployeeAttendenceDTO
     {
         public int id { get; set; }
         public string name { get; set; }
