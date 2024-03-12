@@ -30,9 +30,10 @@ namespace GraduationProject.Migrations
                 {
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    method = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     selectedFirstWeekendDay = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    selectedSecondWeekendDay = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    selectedSecondWeekendDay = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExtraHourRate = table.Column<int>(type: "int", nullable: true),
+                    DiscountHourRate = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -210,7 +211,8 @@ namespace GraduationProject.Migrations
                     deptid = table.Column<int>(type: "int", nullable: true),
                     GId = table.Column<int>(type: "int", nullable: true),
                     Sal_ID = table.Column<int>(type: "int", nullable: true),
-                    user_Id = table.Column<int>(type: "int", nullable: true)
+                    user_Id = table.Column<int>(type: "int", nullable: true),
+                    IsResigned = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {

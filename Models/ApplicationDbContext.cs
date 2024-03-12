@@ -22,6 +22,10 @@ namespace GraduationProject.Models
         public virtual DbSet<Salary> Salaries { get; set; }
         public virtual DbSet<GeneralSettings> generalSettings { get; set; }
 
+        /// <summary>
+        /// ////////////////////////// New
+        /// </summary>
+
     }
 
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240306035928_v5")]
-    partial class v5
+    [Migration("20240312173517_v2")]
+    partial class v2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,23 +80,25 @@ namespace GraduationProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("AttendanceTime")
-                        .HasColumnType("time");
+                    b.Property<string>("AttendanceTime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Birthdate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("Birthdate")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime>("Contractdate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("Contractdate")
+                        .HasColumnType("date");
 
                     b.Property<int?>("GId")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("IsEmployed")
+                    b.Property<bool?>("IsResigned")
                         .HasColumnType("bit");
 
-                    b.Property<TimeSpan>("LeaveTime")
-                        .HasColumnType("time");
+                    b.Property<string>("LeaveTime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -168,7 +170,7 @@ namespace GraduationProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("GName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

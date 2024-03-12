@@ -77,14 +77,15 @@ namespace GraduationProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("AttendanceTime")
-                        .HasColumnType("time");
+                    b.Property<string>("AttendanceTime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Birthdate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("Birthdate")
+                        .HasColumnType("date");
 
-                    b.Property<DateTime>("Contractdate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateOnly>("Contractdate")
+                        .HasColumnType("date");
 
                     b.Property<int?>("GId")
                         .HasColumnType("int");
@@ -92,8 +93,9 @@ namespace GraduationProject.Migrations
                     b.Property<bool?>("IsResigned")
                         .HasColumnType("bit");
 
-                    b.Property<TimeSpan>("LeaveTime")
-                        .HasColumnType("time");
+                    b.Property<string>("LeaveTime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -165,7 +167,7 @@ namespace GraduationProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("GName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

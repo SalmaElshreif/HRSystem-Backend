@@ -2,8 +2,8 @@
 {
     public class GenderDto
     {
-        public int id { get; set; }
-        public string? name { get; set; }
+        public int GenderId { get; set; }
+        public string GenderName { get; set; }
         public bool IsSelected { get; set; }
 
     }

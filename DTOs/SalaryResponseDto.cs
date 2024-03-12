@@ -2,6 +2,8 @@
 {
     public class SalaryResponseDto
     {
+        public int id { get; set; }
+
         public string? empName { get; set; }
         public string? deptName { get; set; }
         public double NetSalary { get; set; }

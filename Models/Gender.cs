@@ -6,6 +6,8 @@ namespace GraduationProject.Models
     {
         [Key]
         public int Id { get; set; }
-        public string GName { get; set; }
+        public string Name { get; set; }
+
+
     }
 }
