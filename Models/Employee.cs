@@ -12,18 +12,10 @@ namespace GraduationProject.Models
         public string Nationality { get; set; }
         public string NationalId{ get; set; }
         public string Address { get; set; }
-        //public DateTime Birthdate { get; set; }
-        //public DateTime Contractdate { get; set; }
-        //public TimeSpan AttendanceTime { get; set; }
-        //public TimeSpan LeaveTime { get; set; }
-
-        // ------------------------- Rawan -------------------------
-
         public DateOnly Birthdate { get; set; }
         public DateOnly Contractdate { get; set; }
         public string AttendanceTime { get; set; }
         public string LeaveTime { get; set; }
-        // ------------------------- End Rawan -----------------------
 
         [ForeignKey("dept")]
         public int? deptid { get; set; }
