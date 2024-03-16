@@ -3,6 +3,7 @@ using GraduationProject.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace GraduationProject.Controllers
 {
@@ -67,20 +68,26 @@ namespace GraduationProject.Controllers
         //    return Ok();
         //}
 
-        //[HttpGet("GetAllEmployees")]
-        //public IActionResult GetAllEmployees()
-        //{
-        //    var emps = _context.Employees.ToList();
 
-        //    List<GetEmpsResponse> empsResponses = new List<GetEmpsResponse>();
 
-        //    foreach (var emp in emps)
-        //    {
-        //        empsResponses.Add(new GetEmpsResponse { id = emp.Id, name = emp.Name });
-        //    }
+        [HttpGet("GetAllEmployees")]
+        public IActionResult GetAllEmployees()
+        {
+            var emps = _context.Employees.ToList();
 
-        //    return Ok(empsResponses);
-        //}
+            List<GetEmpsResponse> empsResponses = new List<GetEmpsResponse>();
+
+            foreach (var emp in emps)
+            {
+                empsResponses.Add(new GetEmpsResponse { id = emp.Id, name = emp.Name });
+            }
+
+            return Ok(empsResponses);
+        }
+
+
+
+
 
 
         [HttpGet("GetAllEmployeeAttendance")]
@@ -104,7 +111,7 @@ namespace GraduationProject.Controllers
                         name = item.Employee?.Name,
                         attend = item.Attendence.ToString("HH:mm"),
                         leave = item.Departure.ToString("HH:mm"),
-                        department = item.Employee?.dept?.Name
+                        department = item.Employee?.dept?.Name,
                     };
 
                     empAttendDto.Add(employeeAttendenceDTO);
@@ -131,42 +138,52 @@ namespace GraduationProject.Controllers
         }
 
 
-        //[HttpPut("UpdateEmployeeAttendance/{id}")]
-        //public IActionResult UpdateEmployeeAttendance(int id, [FromBody] EmployeeAttendenceDTO updatedEmployee)
-        //{
-        //    if (id != updatedEmployee.id)
-        //    {
-        //        return BadRequest("Invalid ID");
-        //    }
+        [HttpPut("UpdateEmployeeAttendance/{id}")]
+        public IActionResult UpdateEmployeeAttendance(int id, [FromBody] EmployeeAttendenceDTO updatedEmployee)
+        {
+            if (id != updatedEmployee.id)
+            {
+                return BadRequest("Invalid ID");
+            }
 
-        //    var existingEmployee = _context.EmployeeAttendances.Include(e => e.Employee).FirstOrDefault(e => e.Id == id);
+            var existingEmployee = _context.EmployeeAttendances.Include(e => e.Employee).FirstOrDefault(e => e.Id == id);
 
-        //    if (existingEmployee == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (existingEmployee == null)
+            {
+                return NotFound();
+            }
 
-        //    existingEmployee.Employee.Name = updatedEmployee.name;
-        //    existingEmployee.Attendence = updatedEmployee.attend;
-        //    existingEmployee.Departure = updatedEmployee.leave;
+            existingEmployee.Employee.Name = updatedEmployee.name;
+            //existingEmployee.Attendence = updatedEmployee.attend;
+            string dateFormat = "HH:mm"; // Specify the format of the date string
+            if (DateTime.TryParseExact(updatedEmployee.attend, dateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+            {
+                existingEmployee.Attendence = parsedDate;
+            }
+            //existingEmployee.Departure = updatedEmployee.leave;
+            string dateFormatLeave = "HH:mm"; // Specify the format of the date string
+            if (DateTime.TryParseExact(updatedEmployee.leave, dateFormatLeave, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateLeave))
+            {
+                existingEmployee.Departure = parsedDateLeave;
+            }
 
-        //    try
-        //    {
-        //        _context.SaveChanges();
-        //        return Ok(existingEmployee);
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!EmployeeExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-        //}
+            try
+            {
+                _context.SaveChanges();
+                return Ok(existingEmployee);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!EmployeeExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
 
         private bool EmployeeExists(int id)
         {

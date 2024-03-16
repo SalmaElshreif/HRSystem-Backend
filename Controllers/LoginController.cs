@@ -67,7 +67,37 @@ namespace GraduationProject.Controllers
             // Save changes to the database
             await _context.SaveChangesAsync();
 
-            return Ok(new { Token= user.Token, UserId = user.Id, Username = user.UserName, Email= user.Email });
+            var role = _context.Roles
+                            .Include(h => h.RolesPermissions.Where(h => h.IsView))
+                            .ThenInclude(h => h.page)
+                            .Where(h => h.Id == user.Role_Id)
+                            .FirstOrDefault();
+            RoleResponse roleDTO = new RoleResponse();
+            roleDTO.role_Id = role.Id;
+            roleDTO.role_Name = role.Name;
+            roleDTO.rolePermissionsDTOs = new List<RolePermissionsResponse>();
+            List<RolePermissionsResponse> rolePermissions = new List<RolePermissionsResponse>();
+            foreach (var permission in role.RolesPermissions)
+            {
+                rolePermissions.Add(new RolePermissionsResponse
+                {
+                    RolePermission_Id = permission.id,
+                    page_Name = permission.page.name,
+                    page_Id = permission.page.id,
+                    icon = permission.page.icon,
+                    label = permission.page.label,
+                    routerLink = permission.page.routerLink,
+                    activateRoute = permission.page.activeRoute,
+
+                    isAdd = permission.IsAdd,
+                    isEdit = permission.IsEdit,
+                    isDelete = permission.IsDelete,
+                    isView = permission.IsView,
+                });
+            }
+            roleDTO.rolePermissionsDTOs = rolePermissions;
+
+            return Ok(new { Token= user.Token, UserId = user.Id, Username = user.UserName, Email= user.Email, Role = roleDTO });
         }
 
 

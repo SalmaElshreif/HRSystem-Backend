@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240312173517_v2")]
-    partial class v2
+    [Migration("20240316040202_v1")]
+    partial class v1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -122,9 +122,6 @@ namespace GraduationProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("user_Id")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("GId");
@@ -132,8 +129,6 @@ namespace GraduationProject.Migrations
                     b.HasIndex("Sal_ID");
 
                     b.HasIndex("deptid");
-
-                    b.HasIndex("user_Id");
 
                     b.ToTable("Employees");
                 });
@@ -232,27 +227,6 @@ namespace GraduationProject.Migrations
                     b.ToTable("Holidays");
                 });
 
-            modelBuilder.Entity("GraduationProject.Models.HolidayDay", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("H_Id")
-                        .HasColumnType("int");
-
-                    b.HasKey("id");
-
-                    b.HasIndex("H_Id");
-
-                    b.ToTable("HolidayDays");
-                });
-
             modelBuilder.Entity("GraduationProject.Models.Page", b =>
                 {
                     b.Property<int>("id")
@@ -261,8 +235,20 @@ namespace GraduationProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
 
+                    b.Property<string>("activeRoute")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("icon")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("label")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("name")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("routerLink")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("id");
@@ -366,7 +352,7 @@ namespace GraduationProject.Migrations
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("RefreshTokenExpiryTime")
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("Role_Id")
@@ -418,17 +404,11 @@ namespace GraduationProject.Migrations
                         .WithMany("Employees")
                         .HasForeignKey("deptid");
 
-                    b.HasOne("GraduationProject.Models.User", "user")
-                        .WithMany()
-                        .HasForeignKey("user_Id");
-
                     b.Navigation("dept");
 
                     b.Navigation("gender");
 
                     b.Navigation("salary");
-
-                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("GraduationProject.Models.EmployeeAttendance", b =>
@@ -449,17 +429,6 @@ namespace GraduationProject.Migrations
                         .HasForeignKey("CompanyId");
 
                     b.Navigation("Company");
-                });
-
-            modelBuilder.Entity("GraduationProject.Models.HolidayDay", b =>
-                {
-                    b.HasOne("GraduationProject.Models.Holiday", "holiday")
-                        .WithMany()
-                        .HasForeignKey("H_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("holiday");
                 });
 
             modelBuilder.Entity("GraduationProject.Models.RolePermission", b =>

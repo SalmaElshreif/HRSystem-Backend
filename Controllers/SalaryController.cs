@@ -18,7 +18,6 @@ namespace GraduationProject.Controllers
 
 
 
-
         //[HttpGet]
         //public IActionResult GetAllSalaries()
         //{
@@ -43,7 +42,10 @@ namespace GraduationProject.Controllers
         //        selectedSecondWeekendDay = settings.selectedSecondWeekendDay,
         //    };
 
-        //    var selectedVacationDays = generalSettingDTO.SelectedVacationDays;
+        //    var selectedWeekendDays = new List<string> { generalSettingDTO.selectedFirstWeekendDay, generalSettingDTO.selectedSecondWeekendDay };
+
+        //    var holidays = _context.Holidays.Where(h => h.Date.Month == DateTime.Now.Month).ToList();
+        //    int HolidaysCount = holidays?.Count() ?? 0;
 
         //    var salaries = new List<SalaryResponseDto>();
 
@@ -62,45 +64,42 @@ namespace GraduationProject.Controllers
 
         //        double DayPrice = employee.salary.NetSalary / 30;
 
-        //        double timeDifferenceInHours = (employee.LeaveTime - employee.AttendanceTime).TotalHours;
-        //        double HourPrice = timeDifferenceInHours > 0 ? DayPrice / timeDifferenceInHours : 0;
+        //        //double timeDifferenceInHours = (employee.LeaveTime - employee.AttendanceTime).TotalHours;
 
-        //        var holidays = _context.Holidays.Where(h => h.Date.Month == DateTime.Now.Month).ToList();
-        //        int HolidaysCount = holidays?.Count() ?? 0;
+        //        DateTime leaveTime = DateTime.Parse(employee.LeaveTime);
+        //        DateTime attendanceTime = DateTime.Parse(employee.AttendanceTime);
+        //        double timeDifferenceInHours = (leaveTime - attendanceTime).TotalHours;
+
+        //        double HourPrice = timeDifferenceInHours > 0 ? DayPrice / timeDifferenceInHours : 0;
 
         //        int daysInCurrentMonth = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
 
-        //        var selectedWeekendDays = new List<string> { generalSettingDTO.selectedFirstWeekendDay, generalSettingDTO.selectedSecondWeekendDay };
-        //        int weekendsInMonth = CountWeekendsInMonth(DateTime.Now.Year, DateTime.Now.Month, selectedWeekendDays);
+        //        // Calculate absence days excluding weekends, holidays, and selected vacation days
+        //        int absenceDays = 0;
 
-        //        var selectedVacationDaysAsStrings = selectedVacationDays?.Select(day => ((DayOfWeek)day).ToString()).ToList() ?? new List<string>();
+        //        for (int day = 1; day <= daysInCurrentMonth; day++)
+        //        {
+        //            var currentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, day);
 
-        //        int totalOfficialDaysInThisMonth = daysInCurrentMonth - (firstWeekDaysCount + secondWeekDaysCount + HolidaysCount);
+        //            // Check if the current day is a weekend day
+        //            if (selectedWeekendDays.Contains(currentDate.DayOfWeek.ToString()))
+        //            {
+        //                continue;
+        //            }
+
+        //            // Check if the current day is a holiday
+        //            if (holidays.Any(h => h.Date.Date == currentDate.Date))
+        //            {
+        //                continue;
+        //            }
+
+        //            // If none of the above conditions is met, consider it as a working day
+        //            absenceDays++;
+        //        }
 
         //        var attendances = _context.EmployeeAttendances.Where(z => z.EmployeeId == employee.Id).ToList();
 
-        //        int absenceDayss = totalOfficialDaysInThisMonth - attendances?.Count() ?? 0;
-
-        //        var holidaysAndWeekends = holidays.Select(h => h.Date.DayOfWeek.ToString())
-        //            .Concat(selectedWeekendDays)
-        //            //.Concat(selectedVacationDaysAsStrings);
-        //            .Distinct();
-
-        //        //foreach (var dayOfWeek in holidaysAndWeekends.Distinct())
-        //        //{
-        //        //    int daysToRemove = absenceDays / 5;  // Assuming 5 working days in a week
-        //        //    if (absenceDays % 5 >= (int)Enum.Parse(typeof(DayOfWeek), dayOfWeek))
-        //        //        daysToRemove += 1;
-
-        //        //    absenceDays -= daysToRemove;
-        //        //}
-
-        //        //// Ensure absence days are not negative
-        //        //absenceDays = Math.Max(absenceDays, 0);
-
-
-
-        //        //absenceDays -= attendances?.Count() ?? 0;
+        //        int absenceDayss = absenceDays - attendances?.Count() ?? 0;
 
         //        double extraHours = 0;
         //        double lossHours = 0;
@@ -127,9 +126,10 @@ namespace GraduationProject.Controllers
 
         //        var salary = new SalaryResponseDto
         //        {
+        //            id = employee.Id,
         //            empName = employee.Name,
         //            NetSalary = employee.salary.NetSalary,
-        //            deptName = employee.dept.Name,
+        //            deptName = employee?.dept?.Name,
         //            attendanceDays = attendances?.Count() ?? 0,
         //            absenceDays = absenceDayss,
         //            exrtaHours = extraHours,
@@ -138,7 +138,7 @@ namespace GraduationProject.Controllers
         //            discountSalary = lossHours * HourPrice,
         //            HourlyRate = HourPrice,
         //            DailyRate = DayPrice,
-        //            WeekendDays = weekendsInMonth,
+        //            WeekendDays = CountWeekendsInMonth(DateTime.Now.Year, DateTime.Now.Month, selectedWeekendDays),
         //        };
         //        double totalSalary = employee.salary.NetSalary + salary.extraSalary + salary.discountSalary;
 
@@ -152,9 +152,17 @@ namespace GraduationProject.Controllers
 
 
 
+
         [HttpGet]
         public IActionResult GetAllSalaries()
         {
+            var currentDate = DateTime.Now;
+            var currentMonth = currentDate.Month;
+            var currentYear = currentDate.Year;
+
+            var firstDayOfMonth = new DateTime(currentYear, currentMonth, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
             var employees = _context.Employees
                 .Include(e => e.dept)
                 .Include(e => e.salary)
@@ -178,7 +186,12 @@ namespace GraduationProject.Controllers
 
             var selectedWeekendDays = new List<string> { generalSettingDTO.selectedFirstWeekendDay, generalSettingDTO.selectedSecondWeekendDay };
 
-            var holidays = _context.Holidays.Where(h => h.Date.Month == DateTime.Now.Month).ToList();
+            var absenceDaysToDate = new Dictionary<int, int>();
+
+            //var holidays = _context.Holidays.Where(h => h.Date.Month == DateTime.Now.Month).ToList();
+            var holidays = _context.Holidays
+        .Where(h => h.Date >= firstDayOfMonth && h.Date <= lastDayOfMonth)
+        .ToList();
             int HolidaysCount = holidays?.Count() ?? 0;
 
             var salaries = new List<SalaryResponseDto>();
@@ -189,6 +202,9 @@ namespace GraduationProject.Controllers
                 {
                     continue;
                 }
+
+                var absenceDays = CalculateAbsenceDaysToDate(employee, holidays, settings);
+                absenceDaysToDate.Add(employee.Id, absenceDays);
 
                 var firstWeekDay = settings != null ? settings.selectedFirstWeekendDay : null;
                 var secondWeekDay = settings != null ? settings.selectedSecondWeekendDay : null;
@@ -208,32 +224,7 @@ namespace GraduationProject.Controllers
 
                 int daysInCurrentMonth = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
 
-                // Calculate absence days excluding weekends, holidays, and selected vacation days
-                int absenceDays = 0;
-
-                for (int day = 1; day <= daysInCurrentMonth; day++)
-                {
-                    var currentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, day);
-
-                    // Check if the current day is a weekend day
-                    if (selectedWeekendDays.Contains(currentDate.DayOfWeek.ToString()))
-                    {
-                        continue;
-                    }
-
-                    // Check if the current day is a holiday
-                    if (holidays.Any(h => h.Date.Date == currentDate.Date))
-                    {
-                        continue;
-                    }
-
-                    // If none of the above conditions is met, consider it as a working day
-                    absenceDays++;
-                }
-
-                var attendances = _context.EmployeeAttendances.Where(z => z.EmployeeId == employee.Id).ToList();
-
-                int absenceDayss = absenceDays - attendances?.Count() ?? 0;
+                var attendances = _context.EmployeeAttendances.Where(z => z.EmployeeId == employee.Id && z.Attendence >= firstDayOfMonth && z.Attendence <= lastDayOfMonth).ToList();
 
                 double extraHours = 0;
                 double lossHours = 0;
@@ -265,7 +256,7 @@ namespace GraduationProject.Controllers
                     NetSalary = employee.salary.NetSalary,
                     deptName = employee?.dept?.Name,
                     attendanceDays = attendances?.Count() ?? 0,
-                    absenceDays = absenceDayss,
+                    //absenceDays = absenceDayss,
                     exrtaHours = extraHours,
                     discountHours = lossHours,
                     extraSalary = extraHours * HourPrice,
@@ -273,6 +264,9 @@ namespace GraduationProject.Controllers
                     HourlyRate = HourPrice,
                     DailyRate = DayPrice,
                     WeekendDays = CountWeekendsInMonth(DateTime.Now.Year, DateTime.Now.Month, selectedWeekendDays),
+                    AbsenceDaysToDate = absenceDaysToDate[employee.Id],
+                    Month = currentMonth,
+                    Year = currentYear,
                 };
                 double totalSalary = employee.salary.NetSalary + salary.extraSalary + salary.discountSalary;
 
@@ -284,6 +278,56 @@ namespace GraduationProject.Controllers
             return Ok(salaries);
         }
 
+
+        //[HttpGet("AbsenceDaysToDate")]
+        //public IActionResult GetAbsenceDaysToDate()
+        //{
+        //    var employees = _context.Employees.ToList();
+        //    var holidays = _context.Holidays.Where(h => h.Date.Month == DateTime.Now.Month).ToList();
+
+        //    var absenceDaysToDate = new Dictionary<int, int>();
+
+        //    foreach (var employee in employees)
+        //    {
+        //        var absenceDays = CalculateAbsenceDaysToDate(employee, holidays, );
+        //        absenceDaysToDate.Add(employee.Id, absenceDays);
+        //    }
+
+        //    return Ok(absenceDaysToDate);
+        //}
+
+        private int CalculateAbsenceDaysToDate(Employee employee, List<Holiday> holidays, GeneralSettings generalSettings)
+        {
+            int absenceDaysToDate = 0;
+            int daysInCurrentMonth = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
+
+            for (int day = 1; day <= DateTime.Now.Day; day++)
+            {
+                var currentDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, day);
+
+                if (IsWeekend(currentDate.DayOfWeek, generalSettings) || holidays.Any(h => h.Date.Date == currentDate.Date))
+                {
+                    continue;
+                }
+
+                var attendance = _context.EmployeeAttendances
+                    .FirstOrDefault(z => z.EmployeeId == employee.Id && z.Attendence.Date == currentDate.Date);
+
+                if (attendance == null)
+                {
+                    absenceDaysToDate++;
+                }
+            }
+
+            return absenceDaysToDate;
+        }
+
+        private bool IsWeekend(DayOfWeek dayOfWeek, GeneralSettings generalSettings)
+        {
+            // Check if the provided day matches either of the selected weekend days
+            return dayOfWeek.ToString() == generalSettings.selectedFirstWeekendDay ||
+                   dayOfWeek.ToString() == generalSettings.selectedSecondWeekendDay;
+        }
 
 
         private int CountWeekendsInMonth(int year, int month, List<string> selectedWeekendDays)
@@ -321,6 +365,145 @@ namespace GraduationProject.Controllers
         }
 
 
+        //[HttpGet("SearchEmployees")]
+        //public IActionResult GetSalaryReport(int month, int year)
+        //{
+        //    var employees = _context.Employees
+        //        .Include(e => e.dept)
+        //        .Include(e => e.salary)
+        //        .Where(e => e.IsResigned != true)
+        //        .ToList();
+
+        //    var settings = _context.generalSettings.OrderByDescending(s => s.id).FirstOrDefault();
+
+        //    if (settings == null)
+        //    {
+        //        return BadRequest("General settings not found.");
+        //    }
+
+        //    var generalSettingDTO = new GeneralSettingDTO
+        //    {
+        //        DiscountHourRate = settings.DiscountHourRate,
+        //        ExtraHourRate = settings.ExtraHourRate,
+        //        selectedFirstWeekendDay = settings.selectedFirstWeekendDay,
+        //        selectedSecondWeekendDay = settings.selectedSecondWeekendDay,
+        //    };
+
+        //    var filteredSalaries = new List<SalaryResponseDto>();
+
+        //    var employeesForMonthYear = employees.Where(e => _context.EmployeeAttendances.Any(a => a.EmployeeId == e.Id && a.Attendence.Month == month && a.Attendence.Year == year)).ToList();
+
+        //    if (employeesForMonthYear.Count == 0)
+        //    {
+        //        return NotFound("No employees found for the selected month and year.");
+        //    }
+
+        //    foreach (var employee in employees)
+        //    {
+        //        if (employee.IsResigned ?? false)
+        //        {
+        //            continue;
+        //        }
+
+        //        var firstWeekDay = settings != null ? settings.selectedFirstWeekendDay : null;
+        //        var secondWeekDay = settings != null ? settings.selectedSecondWeekendDay : null;
+
+        //        int firstWeekDaysCount = !string.IsNullOrEmpty(firstWeekDay) ? CountWeekdaysInMonth(year, month, firstWeekDay) : 0;
+        //        int secondWeekDaysCount = !string.IsNullOrEmpty(secondWeekDay) ? CountWeekdaysInMonth(year, month, secondWeekDay) : 0;
+
+        //        //double DayPrice = employee.salary.NetSalary / DateTime.DaysInMonth(year, month);
+        //        double DayPrice = employee.salary.NetSalary / 30;
+
+        //        //double timeDifferenceInHours = (employee.LeaveTime - employee.AttendanceTime).TotalHours;
+
+        //        DateTime leaveTime = DateTime.Parse(employee.LeaveTime);
+        //        DateTime attendanceTime = DateTime.Parse(employee.AttendanceTime);
+        //        double timeDifferenceInHours = (leaveTime - attendanceTime).TotalHours;
+
+        //        double HourPrice = timeDifferenceInHours > 0 ? DayPrice / timeDifferenceInHours : 0;
+
+        //        var holidays = _context.Holidays.Where(h => h.Date.Month == month && h.Date.Year == year).ToList();
+        //        int HolidaysCount = holidays?.Count() ?? 0;
+
+        //        int daysInCurrentMonth = DateTime.DaysInMonth(year, month);
+
+        //        //int daysInCurrentMonth = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
+
+        //        var selectedWeekendDays = new List<string> { generalSettingDTO.selectedFirstWeekendDay, generalSettingDTO.selectedSecondWeekendDay };
+        //        int weekendsInMonth = CountWeekendsInMonth(year, month, selectedWeekendDays);
+        //        //int weekendsInMonth = CountWeekendsInMonth(DateTime.Now.Year, DateTime.Now.Month, selectedWeekendDays);
+
+        //        var selectedVacationDaysAsStrings = generalSettingDTO.SelectedVacationDays?.Select(day => ((DayOfWeek)day).ToString()).ToList() ?? new List<string>();
+
+        //        int totalOfficialDaysInThisMonth = daysInCurrentMonth - (firstWeekDaysCount + secondWeekDaysCount + HolidaysCount);
+
+        //        var attendances = _context.EmployeeAttendances
+        //            .Where(z => z.EmployeeId == employee.Id && z.Attendence.Month == month && z.Attendence.Year == year)
+        //            .ToList();
+
+        //        int absenceDayss = totalOfficialDaysInThisMonth - attendances?.Count() ?? 0;
+
+        //        var holidaysAndWeekends = holidays.Select(h => h.Date.DayOfWeek.ToString())
+        //            .Concat(selectedWeekendDays)
+        //            .Distinct();
+
+        //        double extraHours = 0;
+        //        double lossHours = 0;
+
+        //        foreach (var attendance in attendances)
+        //        {
+        //            var DifferenceInHours = (attendance.Departure - attendance.Attendence).TotalHours;
+        //            var resetHours = DifferenceInHours - timeDifferenceInHours;
+        //            if (resetHours > 0)
+        //            {
+        //                extraHours += resetHours;
+        //            }
+        //            else
+        //            {
+        //                lossHours += resetHours;
+        //            }
+        //        }
+
+        //        double extraHoursAdjustment = settings.ExtraHourRate ?? 0;
+        //        double discountHoursAdjustment = settings.DiscountHourRate ?? 0;
+
+        //        extraHours *= extraHoursAdjustment;
+        //        lossHours *= discountHoursAdjustment;
+
+        //        var salary = new SalaryResponseDto
+        //        {
+        //            id = employee.Id,
+        //            empName = employee.Name,
+        //            NetSalary = employee.salary.NetSalary,
+        //            deptName = employee?.dept?.Name,
+        //            attendanceDays = attendances?.Count() ?? 0,
+        //            absenceDays = absenceDayss,
+        //            exrtaHours = extraHours,
+        //            discountHours = lossHours,
+        //            extraSalary = extraHours * HourPrice,
+        //            discountSalary = lossHours * HourPrice,
+        //            HourlyRate = HourPrice,
+        //            DailyRate = DayPrice,
+        //            WeekendDays = weekendsInMonth,
+        //            Month = month,
+        //            Year = year,
+        //        };
+        //        double totalSalarry = employee.salary.NetSalary + salary.extraSalary + salary.discountSalary;
+
+        //        //salary.totalSalary = totalSalarry - (DayPrice * (totalOfficialDaysInThisMonth - attendances.Count()));
+
+        //        salary.totalSalary = totalSalarry - (DayPrice * (30 - attendances.Count()));
+
+        //        filteredSalaries.Add(salary);
+        //    }
+
+        //    return Ok(filteredSalaries);
+        //}
+
+
+        // Helper method to calculate delay hours
+
+
         [HttpGet("SearchEmployees")]
         public IActionResult GetSalaryReport(int month, int year)
         {
@@ -347,6 +530,14 @@ namespace GraduationProject.Controllers
 
             var filteredSalaries = new List<SalaryResponseDto>();
 
+            var firstDayOfMonth = new DateTime(year, month, 1);
+            var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+            var holidays = _context.Holidays
+                .Where(h => h.Date >= firstDayOfMonth && h.Date <= lastDayOfMonth)
+                .ToList();
+
+
             var employeesForMonthYear = employees.Where(e => _context.EmployeeAttendances.Any(a => a.EmployeeId == e.Id && a.Attendence.Month == month && a.Attendence.Year == year)).ToList();
 
             if (employeesForMonthYear.Count == 0)
@@ -354,7 +545,7 @@ namespace GraduationProject.Controllers
                 return NotFound("No employees found for the selected month and year.");
             }
 
-            foreach (var employee in employees)
+            foreach (var employee in employeesForMonthYear)
             {
                 if (employee.IsResigned ?? false)
                 {
@@ -378,7 +569,9 @@ namespace GraduationProject.Controllers
 
                 double HourPrice = timeDifferenceInHours > 0 ? DayPrice / timeDifferenceInHours : 0;
 
-                var holidays = _context.Holidays.Where(h => h.Date.Month == month && h.Date.Year == year).ToList();
+
+                
+                //var holidays = _context.Holidays.Where(h => h.Date.Month == month && h.Date.Year == year).ToList();
                 int HolidaysCount = holidays?.Count() ?? 0;
 
                 int daysInCurrentMonth = DateTime.DaysInMonth(year, month);
@@ -397,7 +590,15 @@ namespace GraduationProject.Controllers
                     .Where(z => z.EmployeeId == employee.Id && z.Attendence.Month == month && z.Attendence.Year == year)
                     .ToList();
 
-                int absenceDayss = totalOfficialDaysInThisMonth - attendances?.Count() ?? 0;
+                //    var attendanceDays = _context.EmployeeAttendances
+                //.Count(z => z.EmployeeId == employee.Id && z.Attendence.Month == month && z.Attendence.Year == year);
+
+                //var absenceDays = CalculateAbsenceDaysToDate(employee, holidays, settings);
+
+                //int absenceDays = lastDayOfMonth.Day - attendances.Count;
+
+
+                int absenceDays = totalOfficialDaysInThisMonth - attendances?.Count() ?? 0;
 
                 var holidaysAndWeekends = holidays.Select(h => h.Date.DayOfWeek.ToString())
                     .Concat(selectedWeekendDays)
@@ -433,7 +634,7 @@ namespace GraduationProject.Controllers
                     NetSalary = employee.salary.NetSalary,
                     deptName = employee?.dept?.Name,
                     attendanceDays = attendances?.Count() ?? 0,
-                    absenceDays = absenceDayss,
+                    AbsenceDaysToDate = absenceDays,
                     exrtaHours = extraHours,
                     discountHours = lossHours,
                     extraSalary = extraHours * HourPrice,
@@ -454,29 +655,6 @@ namespace GraduationProject.Controllers
             }
 
             return Ok(filteredSalaries);
-        }
-
-
-        // Helper method to calculate delay hours
-        private double CalculateDelayHours(DateTime arrivalTime, DateTime scheduledArrivalTime)
-        {
-            if (arrivalTime > scheduledArrivalTime)
-            {
-                TimeSpan delay = arrivalTime - scheduledArrivalTime;
-                return delay.TotalHours;
-            }
-            return 0;
-        }
-
-        // Helper method to calculate early arrival hours
-        private double CalculateEarlyArrivalHours(DateTime arrivalTime, DateTime scheduledArrivalTime)
-        {
-            if (arrivalTime < scheduledArrivalTime)
-            {
-                TimeSpan earlyArrival = scheduledArrivalTime - arrivalTime;
-                return earlyArrival.TotalHours;
-            }
-            return 0;
         }
 
 
