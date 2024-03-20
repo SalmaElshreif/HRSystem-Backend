@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace GraduationProject.Models
 {
@@ -19,6 +20,7 @@ namespace GraduationProject.Models
 
         [ForeignKey("dept")]
         public int? deptid { get; set; }
+        [JsonIgnore]
         public virtual Department? dept { get; set; }
         [ForeignKey("gender")]
         public int? GId { get; set; }

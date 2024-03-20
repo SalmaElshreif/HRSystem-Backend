@@ -25,31 +25,49 @@ namespace GraduationProject.Controllers
 
             if (generalSettings == null)
             {
-                generalSettings = new GeneralSettings
-                {
-                    selectedFirstWeekendDay = "Saturday",
-                    selectedSecondWeekendDay = "Sunday",
-                    ExtraHourRate = 0,
-                    DiscountHourRate = 0
-                };
+                //generalSettings = new GeneralSettings
+                //{
+                //    selectedFirstWeekendDay = "Saturday",
+                //    selectedSecondWeekendDay = "Sunday",
+                //    ExtraHourRate = 0,
+                //    DiscountHourRate = 0
+                //};
+                return NotFound();
             }
 
             return Ok(generalSettings);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> UpdateWeekendDays(GeneralSettings generalSettings)
-        {
-            try
-            {
-                await _context.generalSettings.AddAsync(generalSettings);
-                await _context.SaveChangesAsync();
+        //[HttpPost]
+        //public async Task<ActionResult> UpdateWeekendDays(GeneralSettings generalSettings)
+        //{
+        //    try
+        //    {
+        //        await _context.generalSettings.AddAsync(generalSettings);
+        //        await _context.SaveChangesAsync();
 
-                return Ok();
-            }catch (Exception ex)
+        //        return Ok();
+        //    }catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
+        //}
+
+        [HttpPost]
+        public ActionResult UpdateWeekendDays(GeneralSettingDTO generalSettingDTO)
+        {
+            GeneralSettings general = new GeneralSettings()
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+                ExtraHourRate = generalSettingDTO.ExtraHourRate,
+                DiscountHourRate = generalSettingDTO.DiscountHourRate,
+                Method = generalSettingDTO.Method,
+                selectedFirstWeekendDay = generalSettingDTO.selectedFirstWeekendDay,
+                selectedSecondWeekendDay = generalSettingDTO.selectedSecondWeekendDay
+            };
+            _context.generalSettings.Add(general);
+            _context.SaveChanges();
+
+            return Ok();
         }
 
     }

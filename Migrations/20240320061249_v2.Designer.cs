@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240316040202_v1")]
-    partial class v1
+    [Migration("20240320061249_v2")]
+    partial class v2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -188,6 +188,9 @@ namespace GraduationProject.Migrations
                     b.Property<int?>("ExtraHourRate")
                         .HasColumnType("int");
 
+                    b.Property<string>("Method")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("selectedFirstWeekendDay")
                         .HasColumnType("nvarchar(max)");
 
@@ -342,6 +345,10 @@ namespace GraduationProject.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

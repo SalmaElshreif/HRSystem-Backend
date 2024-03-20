@@ -11,5 +11,7 @@
         public string selectedSecondWeekendDay { get; set; }
 
         public List<int>? SelectedVacationDays { get; set; }
+
+        public string? Method { get; set; }
     }
 }

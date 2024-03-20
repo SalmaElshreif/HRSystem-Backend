@@ -33,7 +33,8 @@ namespace GraduationProject.Migrations
                     selectedFirstWeekendDay = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     selectedSecondWeekendDay = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ExtraHourRate = table.Column<int>(type: "int", nullable: true),
-                    DiscountHourRate = table.Column<int>(type: "int", nullable: true)
+                    DiscountHourRate = table.Column<int>(type: "int", nullable: true),
+                    Method = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

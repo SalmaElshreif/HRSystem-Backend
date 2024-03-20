@@ -151,7 +151,7 @@ namespace GraduationProject.Controllers
         //}
 
 
-
+        #region True Get All Salaries
 
         [HttpGet]
         public IActionResult GetAllSalaries()
@@ -246,8 +246,11 @@ namespace GraduationProject.Controllers
                 double extraHoursAdjustment = settings.ExtraHourRate ?? 0;
                 double discountHoursAdjustment = settings.DiscountHourRate ?? 0;
 
-                extraHours *= extraHoursAdjustment;
-                lossHours *= discountHoursAdjustment;
+                if (settings.Method == "hour")
+                {
+                    extraHours *= extraHoursAdjustment;
+                    lossHours *= discountHoursAdjustment;
+                }
 
                 var salary = new SalaryResponseDto
                 {
@@ -259,8 +262,10 @@ namespace GraduationProject.Controllers
                     //absenceDays = absenceDayss,
                     exrtaHours = extraHours,
                     discountHours = lossHours,
-                    extraSalary = extraHours * HourPrice,
-                    discountSalary = lossHours * HourPrice,
+                    //extraSalary = extraHours * HourPrice,
+                    //discountSalary = lossHours * HourPrice,
+                    extraSalary = (double)(settings.Method == "hour" ? (extraHours * HourPrice) : (extraHours * settings.ExtraHourRate)),
+                    discountSalary = (double)(settings.Method == "hour" ? (lossHours * HourPrice) : (lossHours * settings.DiscountHourRate)),
                     HourlyRate = HourPrice,
                     DailyRate = DayPrice,
                     WeekendDays = CountWeekendsInMonth(DateTime.Now.Year, DateTime.Now.Month, selectedWeekendDays),
@@ -277,6 +282,161 @@ namespace GraduationProject.Controllers
 
             return Ok(salaries);
         }
+
+
+        #endregion
+
+
+        //[HttpGet]
+        //public IActionResult GetAllSalaries()
+        //{
+        //    var currentDate = DateTime.Now;
+        //    var currentMonth = currentDate.Month;
+        //    var currentYear = currentDate.Year;
+
+        //    var firstDayOfMonth = new DateTime(currentYear, currentMonth, 1);
+        //    var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+
+        //    var employees = _context.Employees
+        //        .Include(e => e.dept)
+        //        .Include(e => e.salary)
+        //        .Where(e => e.IsResigned != true)
+        //        .ToList();
+
+        //    var settings = _context.generalSettings.OrderByDescending(s => s.id).FirstOrDefault();
+
+        //    if (settings == null)
+        //    {
+        //        return BadRequest("General settings not found.");
+        //    }
+
+        //    var generalSettingDTO = new GeneralSettingDTO
+        //    {
+        //        DiscountHourRate = settings.DiscountHourRate,
+        //        ExtraHourRate = settings.ExtraHourRate,
+        //        selectedFirstWeekendDay = settings.selectedFirstWeekendDay,
+        //        selectedSecondWeekendDay = settings.selectedSecondWeekendDay,
+        //    };
+
+        //    var selectedWeekendDays = new List<string> { generalSettingDTO.selectedFirstWeekendDay, generalSettingDTO.selectedSecondWeekendDay };
+
+        //    var absenceDaysToDate = new Dictionary<int, int>();
+
+        //    //var holidays = _context.Holidays.Where(h => h.Date.Month == DateTime.Now.Month).ToList();
+        //    var holidays = _context.Holidays
+        //.Where(h => h.Date >= firstDayOfMonth && h.Date <= lastDayOfMonth)
+        //.ToList();
+        //    int HolidaysCount = holidays?.Count() ?? 0;
+
+        //    var salaries = new List<SalaryResponseDto>();
+
+        //    foreach (var employee in employees)
+        //    {
+        //        if (employee.IsResigned ?? false)
+        //        {
+        //            continue;
+        //        }
+
+        //        var absenceDays = CalculateAbsenceDaysToDate(employee, holidays, settings);
+        //        absenceDaysToDate.Add(employee.Id, absenceDays);
+
+        //        var firstWeekDay = settings != null ? settings.selectedFirstWeekendDay : null;
+        //        var secondWeekDay = settings != null ? settings.selectedSecondWeekendDay : null;
+
+        //        int firstWeekDaysCount = !string.IsNullOrEmpty(firstWeekDay) ? CountWeekdaysInMonth(DateTime.Now.Year, DateTime.Now.Month, firstWeekDay) : 0;
+        //        int secondWeekDaysCount = !string.IsNullOrEmpty(secondWeekDay) ? CountWeekdaysInMonth(DateTime.Now.Year, DateTime.Now.Month, secondWeekDay) : 0;
+
+        //        double DayPrice = employee.salary.NetSalary / 30;
+
+        //        //double timeDifferenceInHours = (employee.LeaveTime - employee.AttendanceTime).TotalHours;
+
+        //        DateTime leaveTime = DateTime.Parse(employee.LeaveTime);
+        //        DateTime attendanceTime = DateTime.Parse(employee.AttendanceTime);
+        //        double timeDifferenceInHours = (leaveTime - attendanceTime).TotalHours;
+
+        //        double HourPrice = timeDifferenceInHours > 0 ? DayPrice / timeDifferenceInHours : 0;
+
+        //        int daysInCurrentMonth = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
+
+        //        var attendances = _context.EmployeeAttendances.Where(z => z.EmployeeId == employee.Id && z.Attendence >= firstDayOfMonth && z.Attendence <= lastDayOfMonth).ToList();
+
+        //        double extraHours = 0;
+        //        double lossHours = 0;
+
+        //        foreach (var attendance in attendances)
+        //        {
+        //            var DifferenceInHours = (attendance.Departure - attendance.Attendence).TotalHours;
+        //            var resetHours = DifferenceInHours - timeDifferenceInHours;
+        //            if (resetHours > 0)
+        //            {
+        //                extraHours += resetHours;
+        //            }
+        //            else
+        //            {
+        //                lossHours += resetHours;
+        //            }
+        //        }
+
+        //        double extraHoursAdjustment = settings.ExtraHourRate ?? 0;
+        //        double discountHoursAdjustment = settings.DiscountHourRate ?? 0;
+
+        //        if (settings.Method == "hour")
+        //        {
+        //            extraHours *= extraHoursAdjustment;
+        //            lossHours *= discountHoursAdjustment;
+        //        }
+
+        //        var salary = new SalaryResponseDto
+        //        {
+        //            id = employee.Id,
+        //            empName = employee.Name,
+        //            NetSalary = employee.salary.NetSalary,
+        //            deptName = employee?.dept?.Name,
+        //            attendanceDays = attendances?.Count() ?? 0,
+        //            //absenceDays = absenceDayss,
+        //            exrtaHours = extraHours,
+        //            discountHours = lossHours,
+        //            //extraSalary = extraHours * HourPrice,
+        //            //discountSalary = lossHours * HourPrice,
+        //            extraSalary = (double)(settings.Method == "hour" ? (extraHours * HourPrice) : (extraHours * settings.ExtraHourRate)),
+        //            discountSalary = (double)(settings.Method == "hour" ? (lossHours * HourPrice) : (lossHours * settings.DiscountHourRate)),
+        //            HourlyRate = HourPrice,
+        //            DailyRate = DayPrice,
+        //            WeekendDays = CountWeekendsInMonth(DateTime.Now.Year, DateTime.Now.Month, selectedWeekendDays),
+        //            AbsenceDaysToDate = absenceDaysToDate[employee.Id],
+        //            Month = currentMonth,
+        //            Year = currentYear,
+        //        };
+        //        double totalSalary = employee.salary.NetSalary + salary.extraSalary + salary.discountSalary;
+
+        //        salary.totalSalary = totalSalary - (DayPrice * (30 - attendances.Count()));
+
+        //        salaries.Add(salary);
+        //    }
+
+        //    //// Save old salaries to preserve them
+        //    //var oldSalaries = _context.Salaries.ToList();
+        //    //_context.Salaries.RemoveRange(oldSalaries);
+        //    //_context.SaveChanges();
+
+        //    //// Save new salaries
+        //    //var newSalaries = salaries.Select(s => new Salary
+        //    //{
+        //    //    NetSalary = s.NetSalary,
+        //    //    ExtraSalary = s.extraSalary,
+        //    //    SalaryLoss = s.discountSalary,
+        //    //    TotalSalary = s.totalSalary
+        //    //}).ToList();
+        //    //_context.Salaries.AddRange(newSalaries);
+        //    //_context.SaveChanges();
+
+        //    return Ok(salaries);
+        //}
+
+
+
+
+
 
 
         //[HttpGet("AbsenceDaysToDate")]
@@ -624,8 +784,12 @@ namespace GraduationProject.Controllers
                 double extraHoursAdjustment = settings.ExtraHourRate ?? 0;
                 double discountHoursAdjustment = settings.DiscountHourRate ?? 0;
 
-                extraHours *= extraHoursAdjustment;
-                lossHours *= discountHoursAdjustment;
+                if(settings.Method == "hour")
+                {
+                    extraHours *= extraHoursAdjustment;
+                    lossHours *= discountHoursAdjustment;
+                }
+
 
                 var salary = new SalaryResponseDto
                 {
@@ -637,8 +801,10 @@ namespace GraduationProject.Controllers
                     AbsenceDaysToDate = absenceDays,
                     exrtaHours = extraHours,
                     discountHours = lossHours,
-                    extraSalary = extraHours * HourPrice,
-                    discountSalary = lossHours * HourPrice,
+                    //extraSalary = extraHours * HourPrice,
+                    //discountSalary = lossHours * HourPrice,
+                    extraSalary = (double)(settings.Method == "hour" ? (extraHours * HourPrice) : (extraHours * settings.ExtraHourRate)),
+                    discountSalary = (double)(settings.Method == "hour" ? (lossHours * HourPrice) : (lossHours * settings.DiscountHourRate)),
                     HourlyRate = HourPrice,
                     DailyRate = DayPrice,
                     WeekendDays = weekendsInMonth,
@@ -685,6 +851,7 @@ namespace GraduationProject.Controllers
                 ExtraHourRate = settings.ExtraHourRate,
                 selectedFirstWeekendDay = settings.selectedFirstWeekendDay,
                 selectedSecondWeekendDay = settings.selectedSecondWeekendDay,
+                Method = settings.Method,    /////////////////////////////////////////// New
             };
 
             var firstWeekDay = settings != null ? settings.selectedFirstWeekendDay : null;

@@ -55,7 +55,7 @@ namespace GraduationProject.Controllers
                         isEdit = permision.IsEdit,
                         isView = permision.IsView,
                         page_Id = permision.Page_Id,
-                        page_Name = permision.page.name,
+                        page_Name = permision.page.label,
                     });
 
                 }
@@ -88,7 +88,7 @@ namespace GraduationProject.Controllers
                         isEdit = false,
                         isView = false,
                         page_Id = page.id,
-                        page_Name = page.name,
+                        page_Name = page.label,
                     });
                 }
                 return Ok(saveRoleDTO);

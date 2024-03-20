@@ -7,5 +7,6 @@
         public double? ExtraSalary { get; set; }
         public double? SalaryLoss { get; set; }
         public double? TotalSalary { get; set; }
+
     }
 }

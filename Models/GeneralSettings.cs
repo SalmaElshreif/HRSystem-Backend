@@ -11,6 +11,8 @@ namespace GraduationProject.Models
 
         public int? ExtraHourRate { get; set; }
         public int? DiscountHourRate { get; set; }
+        public string? Method { get; set; }
+
 
     }
 }
