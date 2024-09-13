@@ -16,5 +16,10 @@
         public double NetSalary { get; set; }
         public string AttendanceTime { get; set; }
         public string LeaveTime { get; set; }
+
+        public string Department { get; set; }
+
+        public int DepartmentId { get; set; }
+
     }
 }

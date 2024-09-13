@@ -38,21 +38,6 @@ namespace GraduationProject.Controllers
             return Ok(generalSettings);
         }
 
-        //[HttpPost]
-        //public async Task<ActionResult> UpdateWeekendDays(GeneralSettings generalSettings)
-        //{
-        //    try
-        //    {
-        //        await _context.generalSettings.AddAsync(generalSettings);
-        //        await _context.SaveChangesAsync();
-
-        //        return Ok();
-        //    }catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
-
         [HttpPost]
         public ActionResult UpdateWeekendDays(GeneralSettingDTO generalSettingDTO)
         {

@@ -6,6 +6,7 @@ namespace GraduationProject.Models
     {
         public int id { get; set; }
         public DateTime Date { get; set; }
+
         [ForeignKey("holiday")]
         public int H_Id { get; set; }
         public  virtual Holiday? holiday { get; set;}

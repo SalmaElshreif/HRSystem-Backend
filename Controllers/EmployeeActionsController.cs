@@ -28,6 +28,16 @@ namespace GraduationProject.Controllers
                     ModelState.AddModelError("NationalId", "The national ID must be unique.");
                     return BadRequest(ModelState);
                 }
+
+                Department department = await _context
+                    .Departments.FirstOrDefaultAsync(d => d.Name == newEmployeeDto.Department);
+
+                if (department == null)
+                {
+                    ModelState.AddModelError("Department", "Invalid department name.");
+                    return BadRequest(ModelState);
+                }
+
                 Employee newEmployee = new Employee
                 {
                     Id = newEmployeeDto.Id,
@@ -40,6 +50,7 @@ namespace GraduationProject.Controllers
                     Contractdate = newEmployeeDto.Contractdate,
                     gender = new Gender { Name = newEmployeeDto.Gender },
                     salary = new Salary { NetSalary = newEmployeeDto.NetSalary },
+                    dept = department,
                     AttendanceTime = newEmployeeDto.AttendanceTime,
                     LeaveTime = newEmployeeDto.LeaveTime,
 
@@ -66,7 +77,7 @@ namespace GraduationProject.Controllers
                 {
                     return BadRequest(ModelState);
                 }
-                Employee? employee = await _context.Employees.Include(e => e.gender).Include(e => e.salary)
+                Employee? employee = await _context.Employees.Include(e => e.gender).Include(e => e.salary).Include(e => e.dept)
                         .FirstOrDefaultAsync(x => x.Id == id);
 
                 if (employee == null)
@@ -74,8 +85,26 @@ namespace GraduationProject.Controllers
                     return NotFound();
                 }
 
+                Department existingDepartment = employee.dept;
+                if (existingDepartment.Name != updatedEmployeeDto.Department)
+                {
+                    Department newDepartment = await _context.Departments
+                        .FirstOrDefaultAsync(d => d.Name == updatedEmployeeDto.Department);
+
+                    if (newDepartment == null)
+                    {
+                        ModelState.AddModelError("Department", "Invalid department name.");
+                        return BadRequest(ModelState);
+                    }
+                    else
+                    {
+                        employee.dept = newDepartment;
+                    }
+                }
+
                 employee.Name = updatedEmployeeDto.Name;
                 employee.Address = updatedEmployeeDto.Address;
+                //employee.dept.Name = updatedEmployeeDto.Department;
                 employee.phone = updatedEmployeeDto.Phone;
                 employee.gender.Name = updatedEmployeeDto.Gender;
                 employee.Nationality = updatedEmployeeDto.Nationality;
@@ -100,10 +129,7 @@ namespace GraduationProject.Controllers
         {
             try
             {
-                Employee? employee = await _context.Employees.Include(e => e.salary)
-
-                                                             .Include(e => e.gender)
-                                                             .FirstOrDefaultAsync(e => e.Id == id);
+                Employee? employee = await _context.Employees.Include(e => e.salary).Include(e => e.gender).Include(e => e.dept).FirstOrDefaultAsync(e => e.Id == id);
 
                 if (employee == null)
                     return NotFound();

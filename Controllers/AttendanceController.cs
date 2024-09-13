@@ -17,61 +17,9 @@ namespace GraduationProject.Controllers
             _context = context;
         }
 
-        //[HttpGet]
-        //public IActionResult GetAttendancies(GetAttendanceRequest attendanceRequest) 
-        //{
-        //    //var attendacies = _context.EmployeeAttendances
-        //    //                        .Where(h => h.Attendence.Day == DateTime.Now.Day && 
-        //    //                                    h.Attendence.Month == DateTime.Now.Month && 
-        //    //                                    h.Attendence.Year == DateTime.Now.Year)
-        //    //                        .ToList();
-        //    var attendacies2 = _context.EmployeeAttendances
-        //                            .Where(h => h.Attendence >= attendanceRequest.from && 
-        //                                        h.Departure <= attendanceRequest.to)
-        //                            .ToList();
-        //    return Ok(attendacies2);
-        //}
-
-        //[HttpPost]
-        //public IActionResult AddEmpAttendace(SaveEmpRequest request)
-        //{
-        //    EmployeeAttendance employeeAttendance = new EmployeeAttendance();
-        //    employeeAttendance.Attendence = request.attendance;
-        //    employeeAttendance.Departure = request.departure;
-        //    employeeAttendance.EmployeeId = request.EmpId;
-
-        //    _context.EmployeeAttendances.Add(employeeAttendance);
-        //    _context.SaveChanges();
-        //    return Ok();
-        //}
-
-        //[HttpPut]
-        //public IActionResult EditEmpAttendace(SaveEmpRequest request)
-        //{
-        //    var employeeAttendance = _context.EmployeeAttendances.Where(z => z.Id == request.id).FirstOrDefault();
-
-        //    employeeAttendance.Departure = request.departure;
-        //    employeeAttendance.Attendence = request.attendance;
-        //    employeeAttendance.EmployeeId = request.EmpId;
-
-        //    _context.Entry(employeeAttendance).State = EntityState.Modified;
-        //    _context.SaveChanges();
-        //    return Ok();
-        //}
-
-        //[HttpDelete]
-        //public IActionResult SaveEmpAttendace(int id)
-        //{
-        //    var empAttendance = _context.EmployeeAttendances.Find(id);
-        //    _context.EmployeeAttendances.Remove(empAttendance);
-        //    _context.SaveChanges();
-        //    return Ok();
-        //}
-
-
 
         [HttpGet("GetAllEmployees")]
-        public IActionResult GetAllEmployees()
+        public IActionResult GetAllEmployeesDropdown()
         {
             var emps = _context.Employees.ToList();
 
@@ -84,10 +32,6 @@ namespace GraduationProject.Controllers
 
             return Ok(empsResponses);
         }
-
-
-
-
 
 
         [HttpGet("GetAllEmployeeAttendance")]
@@ -110,8 +54,9 @@ namespace GraduationProject.Controllers
                         id = item.Id,
                         name = item.Employee?.Name,
                         attend = item.Attendence.ToString("HH:mm"),
-                        leave = item.Departure.ToString("HH:mm"),
+                        leave = item.Departure?.ToString("HH:mm"),
                         department = item.Employee?.dept?.Name,
+                        day = item.Attendence.ToShortDateString(),
                     };
 
                     empAttendDto.Add(employeeAttendenceDTO);
@@ -120,6 +65,48 @@ namespace GraduationProject.Controllers
                 return Ok(empAttendDto);
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<EmployeeAttendance>> GetAttendanceById(int id)
+        {
+            var attendance = await _context.EmployeeAttendances.FindAsync(id);
+
+            if (attendance == null)
+            {
+                return NotFound(); 
+            }
+
+            return attendance;
+        }
+
+
+        [HttpPost]
+        public IActionResult AddEmpAttendace([FromBody] SaveEmpRequest request)
+        {
+            EmployeeAttendance employeeAttendance = new EmployeeAttendance();
+            employeeAttendance.Attendence = request.attendance;
+            //employeeAttendance.Departure = request.departure;
+            employeeAttendance.EmployeeId = request.EmployeeId.Value; ;
+
+            _context.EmployeeAttendances.Add(employeeAttendance);
+            _context.SaveChanges();
+            return Ok();
+        }
+
+
+        [HttpPut]
+        public IActionResult EditEmpAttendace(EditEmpRequest request)
+        {
+            var employeeAttendance = _context.EmployeeAttendances.Where(z => z.Id == request.id).FirstOrDefault();
+
+            employeeAttendance.Departure = request.departure;
+            employeeAttendance.Attendence = request.attendance;
+
+            _context.Entry(employeeAttendance).State = EntityState.Modified;
+            _context.SaveChanges();
+            return Ok();
+        }
+
 
         [HttpDelete("DeleteEmployeeAttendance/{id}")]
         public IActionResult DeleteEmployeeAttendance(int id)
@@ -138,57 +125,75 @@ namespace GraduationProject.Controllers
         }
 
 
-        [HttpPut("UpdateEmployeeAttendance/{id}")]
-        public IActionResult UpdateEmployeeAttendance(int id, [FromBody] EmployeeAttendenceDTO updatedEmployee)
+        [HttpPost("GetAttendancies")]
+        public IActionResult GetAttendancies([FromBody] GetAttendanceRequest attendanceRequest)
         {
-            if (id != updatedEmployee.id)
-            {
-                return BadRequest("Invalid ID");
-            }
+            var attendacies2 = _context.EmployeeAttendances
+                                    .Include(h => h.Employee)
+                                        .ThenInclude(h => h.dept)
+                                    .Where(h => h.Attendence >= attendanceRequest.from &&
+                                               h.Departure <= attendanceRequest.to)
+                                    .ToList();
 
-            var existingEmployee = _context.EmployeeAttendances.Include(e => e.Employee).FirstOrDefault(e => e.Id == id);
-
-            if (existingEmployee == null)
+            List<EmployeesAttendancesResponse> employeesAttendances = new List<EmployeesAttendancesResponse>();
+            foreach (var attend in attendacies2)
             {
-                return NotFound();
-            }
-
-            existingEmployee.Employee.Name = updatedEmployee.name;
-            //existingEmployee.Attendence = updatedEmployee.attend;
-            string dateFormat = "HH:mm"; // Specify the format of the date string
-            if (DateTime.TryParseExact(updatedEmployee.attend, dateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
-            {
-                existingEmployee.Attendence = parsedDate;
-            }
-            //existingEmployee.Departure = updatedEmployee.leave;
-            string dateFormatLeave = "HH:mm"; // Specify the format of the date string
-            if (DateTime.TryParseExact(updatedEmployee.leave, dateFormatLeave, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateLeave))
-            {
-                existingEmployee.Departure = parsedDateLeave;
-            }
-
-            try
-            {
-                _context.SaveChanges();
-                return Ok(existingEmployee);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EmployeeExists(id))
+                employeesAttendances.Add(new EmployeesAttendancesResponse
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                    id = attend.Id,
+                    empName = attend.Employee.Name,
+                    deptName = attend.Employee.dept.Name,
+                    day = attend.Attendence.ToShortDateString(),
+                    attendance = attend.Attendence.ToShortTimeString(),
+                    departure = attend.Departure.Value.ToShortTimeString(),
+                });
             }
+            return Ok(employeesAttendances);
         }
+
 
         private bool EmployeeExists(int id)
         {
             return _context.EmployeeAttendances.Any(e => e.Id == id);
         }
+
+
+        [HttpGet("GetEmployeeAttendanceBetweenDates")]
+        public IActionResult GetEmployeeAttendanceBetweenDates(DateTime startDate, DateTime endDate)
+        {
+            var empAttend = _context.EmployeeAttendances
+                .Include(e => e.Employee)
+                .ThenInclude(e => e.dept)
+                .Where(e => e.Attendence >= startDate && e.Attendence <= endDate)
+                .ToList();
+
+            if (empAttend == null || empAttend.Count == 0)
+            {
+                return NotFound();
+            }
+            else
+            {
+                List<EmployeeAttendenceDTO> empAttendDto = new List<EmployeeAttendenceDTO>();
+
+                foreach (EmployeeAttendance item in empAttend)
+                {
+                    EmployeeAttendenceDTO employeeAttendenceDTO = new EmployeeAttendenceDTO
+                    {
+                        id = item.Id,
+                        name = item.Employee?.Name,
+                        attend = item.Attendence.ToString("HH:mm"),
+                        leave = item.Departure.Value.ToString("HH:mm"),
+                        department = item.Employee?.dept?.Name,
+                        day = item.Attendence.ToShortDateString(),
+                    };
+
+                    empAttendDto.Add(employeeAttendenceDTO);
+                }
+
+                return Ok(empAttendDto);
+            }
+        }
+
 
     }
 }

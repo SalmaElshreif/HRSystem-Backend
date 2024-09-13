@@ -28,11 +28,6 @@ namespace GraduationProject.Models
         [ForeignKey("salary")]
         public int? Sal_ID { get; set; }
         public virtual Salary? salary { get; set; }
-
-        //[ForeignKey("user")]
-        //public int? user_Id { get; set; }
-        //public virtual User? user{ get; set; }
-
         public bool? IsResigned { get; set; }
 
     }

@@ -36,6 +36,7 @@ namespace GraduationProject
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
             });
 
+
             builder.Services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,7 +60,6 @@ namespace GraduationProject
             app.UseCors("AllowAllOrigins");
 
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

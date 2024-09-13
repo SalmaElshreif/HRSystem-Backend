@@ -4,6 +4,7 @@ using GraduationProject.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240320181922_v3")]
+    partial class v3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,20 +44,6 @@ namespace GraduationProject.Migrations
                     b.HasIndex("GeneralSettingsId");
 
                     b.ToTable("Companies");
-                });
-
-            modelBuilder.Entity("GraduationProject.Models.Dashboard", b =>
-                {
-                    b.Property<double>("AverageSalary")
-                        .HasColumnType("float");
-
-                    b.Property<int>("NumberOfDepartments")
-                        .HasColumnType("int");
-
-                    b.Property<int>("NumberOfEmployees")
-                        .HasColumnType("int");
-
-                    b.ToTable("Dashboards");
                 });
 
             modelBuilder.Entity("GraduationProject.Models.Department", b =>
@@ -155,7 +144,7 @@ namespace GraduationProject.Migrations
                     b.Property<DateTime>("Attendence")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("Departure")
+                    b.Property<DateTime>("Departure")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("EmployeeId")

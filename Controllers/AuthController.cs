@@ -31,18 +31,25 @@ namespace GraduationProject.Controllers
                 user.Role_Id = userReq.Role_Id;
                 user.Password = userReq.Password;
 
-                // Check Username
                 if (await CheckUserNameExistAsync(user.UserName))
                     return BadRequest(new { Message = "Username Already Exists" });
 
-                // Check Email
                 if (await CheckEmailExistAsync(user.Email))
                     return BadRequest(new { Message = "Email Already Exists" });
 
                 user.Password = PasswordHasher.HashPassword(user.Password);
                 user.Token = "";
                 _context.Users.Add(user);
-                await _context.SaveChangesAsync();        
+                await _context.SaveChangesAsync();
+
+                var temporaryPassword = new TemporaryPasswords
+                {
+                    UserID = user.Id,
+                    OriginalPassword = userReq.Password
+                };
+                _context.temporaryPasswords.Add(temporaryPassword);
+                await _context.SaveChangesAsync();
+
                 return Ok();
             }
             catch (Exception ex) 
@@ -80,65 +87,45 @@ namespace GraduationProject.Controllers
             return Ok(await _context.Users.ToListAsync());
         }
 
-        //[HttpGet("GetAllUsers")]
-        //public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
-        //{
-        //    try
-        //    {
-        //        List<User> userDtoList = await _context.Users
-        //            .Select(user => new User
-        //            {
-        //                Id = user.Id,
-        //                User_Name = user.UserName,
-        //                Email = user.Email,
-        //                Role_Id = user.role.Id,
-        //            })
-        //            .ToListAsync();
-
-        //        if (userDtoList.Count > 0)
-        //            return Ok(userDtoList);
-        //        else
-        //            return NotFound();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest();
-        //    }
-        //}
-
-
         [HttpGet("{id}")]
         public async Task<ActionResult<UserReq>> GetUserById(int id)
         {
             try
             {
-                UserReq? usersDto = await _context.Users
-                    .Where(user => user.Id == id)
-                    .Select(user => new UserReq
-                    {
-                        Id = user.Id,
-                        Name = user.Name,
-                        User_Name = user.UserName,
-                        Email = user.Email,
-                        Password = user.Password,
-                        Role_Id = user.role.Id,
-                        Role_Name = user.role.Name,
-
-                    })
+                var user = await _context.Users
+                    .Where(u => u.Id == id)
                     .FirstOrDefaultAsync();
 
-                if (usersDto != null)
-                {
-                    return Ok(usersDto);
-                }
-                else
+                if (user == null)
                     return NotFound();
+
+                var temporaryPassword = await _context.temporaryPasswords
+                    .Where(tp => tp.UserID == id)
+                    .Select(tp => tp.OriginalPassword)
+                    .FirstOrDefaultAsync();
+
+                var userDto = new UserReq
+                {
+                    User_Name = user.UserName,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role_Id = (int)user.Role_Id
+                };
+
+
+                if (!string.IsNullOrEmpty(temporaryPassword))
+                {
+                    userDto.Password = temporaryPassword;
+                }
+
+                return Ok(userDto);
             }
             catch (Exception ex)
             {
                 return BadRequest();
             }
         }
+
 
 
         [HttpPut("{id}")]
@@ -170,6 +157,25 @@ namespace GraduationProject.Controllers
             {
                 return BadRequest();
             }
+        }
+
+        [HttpDelete("DeleteUser/{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+            var user = _context.Users.Find(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var associatedPasswords = _context.temporaryPasswords.Where(p => p.UserID == id);
+            _context.temporaryPasswords.RemoveRange(associatedPasswords);
+
+            _context.Users.Remove(user);
+            _context.SaveChanges();
+
+            return NoContent();
         }
 
 

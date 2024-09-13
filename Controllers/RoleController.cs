@@ -114,12 +114,10 @@ namespace GraduationProject.Controllers
                     // edit
                     var role = _context.Roles.Include(h => h.RolesPermissions).FirstOrDefault(z => z.Id == saveRoleDTO.role_Id);
                     role.Name = saveRoleDTO.role_Name;
-                    // this to delete the old list
                     foreach (var permission in role.RolesPermissions)
                     {
                         _context.Remove(permission);
                     }
-                    //then add the new list
                     role.RolesPermissions = new List<RolePermission>();
                     List<RolePermission> accessRules = new List<RolePermission>();
                     foreach (var access in saveRoleDTO.rolePermissionsDTOs)
@@ -146,26 +144,6 @@ namespace GraduationProject.Controllers
             }
         }
 
-
-        //minf3sh ams7 role mrtbta b user
-        //[HttpPost("DeleteRole")]
-        //public ActionResult DeleteRole([FromBody] int id)
-        //{
-        //    try
-        //    {
-        //        var role = _context.Roles.Include(z => z.RolesPermissions).FirstOrDefault(h => h.Id == id);
-        //        _context.Roles.Remove(role);
-        //        _context.SaveChanges();
-        //        return Ok(new { message = "تم الحذف بنجاح" });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-
-        //}
-
-        // hlghy ertbat el user bl role el hms7ha
         [HttpPost("DeleteRole")]
         public ActionResult DeleteRole([FromBody] int id)
         {
@@ -185,11 +163,9 @@ namespace GraduationProject.Controllers
 
         }
 
-        // this function for add a new role with list of permissions 
         [HttpPost("add")]
         public ActionResult add(SaveRoleDTO saveRole)
         {
-            /// addd
             Role role = new Role();
             role.Name = saveRole.role_Name;
             role.RolesPermissions = new List<RolePermission>();

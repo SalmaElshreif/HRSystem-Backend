@@ -15,9 +15,9 @@
         public double discountSalary { get; set; }
         public double totalSalary { get; set; }
 
-        public double HourlyRate { get; set; } // Add this line
-        public double DailyRate { get; set; } // Add this line
-        public int WeekendDays { get; set; } // Add this line
+        public double HourlyRate { get; set; }
+        public double DailyRate { get; set; } 
+        public int WeekendDays { get; set; } 
 
         public int Month { get; set; }
         public int Year { get; set; }

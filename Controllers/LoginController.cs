@@ -1,19 +1,14 @@
 ﻿using GraduationProject.DTOs;
 using GraduationProject.Helpers;
 using GraduationProject.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Diagnostics;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using System;
+
 
 namespace GraduationProject.Controllers
 {
@@ -26,27 +21,6 @@ namespace GraduationProject.Controllers
         {
             _context = context;
         }
-        //[HttpPost]
-        //public ActionResult UserLogin([FromForm] LoginReq loginReq)
-        //{
-        //    try
-        //    {
-        //        User user = _context.Users
-        //                        .FirstOrDefault(u => (u.Email==loginReq.UserName_Email||u.UserName==loginReq.UserName_Email) && u.Password == loginReq.Password);
-
-        //        if (user == null)
-        //        {
-        //            return NotFound("User not found");
-        //        }
-
-
-        //     return Ok(user);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return NotFound(ex.Message);
-        //    }
-        //}
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginReq loginDTO)
@@ -61,10 +35,9 @@ namespace GraduationProject.Controllers
 
             if (user == null)
             {
-                return Unauthorized(); // Invalid credentials
+                return Unauthorized(); 
             }
 
-            // Save changes to the database
             await _context.SaveChangesAsync();
 
             var role = _context.Roles
@@ -100,47 +73,16 @@ namespace GraduationProject.Controllers
             return Ok(new { Token= user.Token, UserId = user.Id, Username = user.UserName, Email= user.Email, Role = roleDTO });
         }
 
-
-        //private string CreateJwt(User user)
-        //{
-        //    if (user == null)
-        //    {
-        //        // Handle the case where the user is null
-        //        throw new ArgumentNullException(nameof(user), "User cannot be null.");
-        //    }
-
-        //    var jwtTokenHandler = new JwtSecurityTokenHandler();
-        //    var key = Encoding.ASCII.GetBytes("veryverysceret.....");
-        //    var identity = new ClaimsIdentity(new Claim[]
-        //    {
-        //        new Claim(ClaimTypes.Role, user.Role),
-        //        new Claim(ClaimTypes.Email,$"{user.Email}")
-        //    });
-
-        //    var credentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256);
-
-        //    var tokenDescriptor = new SecurityTokenDescriptor
-        //    {
-        //        Subject = identity,
-        //        Expires = DateTime.Now.AddSeconds(10),
-        //        SigningCredentials = credentials
-        //    };
-        //    var token = jwtTokenHandler.CreateToken(tokenDescriptor);
-        //    return jwtTokenHandler.WriteToken(token);
-        //}
-
         private string CreateJwt(User user)
         {
             if (user == null)
             {
-                // Handle the case where the user is null
                 throw new ArgumentNullException(nameof(user), "User cannot be null.");
             }
 
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(GenerateRandomKey(256));
 
-            // Ensure that user.Role and user.Email are not null before using them
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, user.Role_Id.HasValue ? user.Role_Id.Value.ToString() : string.Empty),

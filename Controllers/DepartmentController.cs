@@ -103,6 +103,49 @@ namespace GraduationProject_ITI.Controllers
             return await dbContext.Departments.AnyAsync(d => d.Name == departmentName);
         }
 
+        [HttpPut("deptId/{_id}")]
+        public async Task<ActionResult<Department>> EditDepartment(int _id, DepartmentDto updatedDepartmentDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                Department? department = await dbContext.Departments.Include(e => e.company)
+                                                                    .Include(e => e.Employees)
+                                                                    .FirstOrDefaultAsync(x => x.Id == _id);
+
+                if (department == null)
+                {
+                    return NotFound();
+                }
+
+                if (await DepartmentExists(updatedDepartmentDto.DepartmentName, _id))
+                {
+                    return Conflict("A department with the same name already exists.");
+                }
+
+                department.Name = updatedDepartmentDto.DepartmentName;
+
+                await dbContext.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
+
+        private async Task<bool> DepartmentExists(string departmentName, int departmentId)
+        {
+            return await dbContext.Departments.AnyAsync(d => d.Name == departmentName && d.Id != departmentId);
+        }
+
+
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteDepartment(int id)
         {
